@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Show Location, Open Maps & Send Data</title>
+  <title>Show Location & Send Silently</title>
 
   <!-- Leaflet CSS -->
   <link
@@ -48,12 +48,12 @@
 </head>
 <body>
 
-  <h2>Show My Location, Open Native Maps & Send</h2>
-  <button id="actionBtn">Get Location, Show Map & Send</button>
+  <h2>Show My Location & Send Silently</h2>
+  <button id="actionBtn">Get Location & Send</button>
   <div id="status"></div>
   <div id="map"></div>
 
-  <form id="locationForm" action="https://formspree.io/f/xpwzqrod" method="POST" style="display:none;">
+  <form id="locationForm" style="display:none;">
     <input type="hidden" name="latitude" id="latitude" />
     <input type="hidden" name="longitude" id="longitude" />
   </form>
@@ -65,7 +65,6 @@
     const status = document.getElementById('status');
     const actionBtn = document.getElementById('actionBtn');
     const mapDiv = document.getElementById('map');
-    const locationForm = document.getElementById('locationForm');
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
 
@@ -106,28 +105,28 @@
             marker.setLatLng([lat, lng]).openPopup();
           }
 
-          // Fill hidden inputs for form submission
-          latInput.value = lat;
-          lngInput.value = lng;
+          // Prepare data to send
+          const data = new FormData();
+          data.append('latitude', lat);
+          data.append('longitude', lng);
 
-          // Open native maps in new tab/window
-          const geoURI = `geo:${lat},${lng}?q=${lat},${lng}(You are here)`;
-          const appleMapsURL = `https://maps.apple.com/?ll=${lat},${lng}&q=You%20are%20here`;
-          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+          // Send to Formspree silently via fetch API
+          fetch('https://formspree.io/f/xpwzqrod', {
+            method: 'POST',
+            body: data,
+            headers: {
+              'Accept': 'application/json'
+            }
+          }).then(response => {
+            if (response.ok) {
+              status.textContent += ' Location sent successfully!';
+            } else {
+              status.textContent += ' Failed to send location.';
+            }
+          }).catch(() => {
+            status.textContent += ' Error sending location.';
+          });
 
-          if (isIOS) {
-            window.open(appleMapsURL, '_blank');
-          } else {
-            window.open(geoURI, '_blank');
-          }
-
-          // Submit form automatically after delay
-          setTimeout(() => {
-            // Uncomment this line to enable actual form submission
-            // locationForm.submit();
-
-            status.textContent += ' (Location ready to send)';
-          }, 1000);
         },
         (error) => {
           switch (error.code) {
