@@ -14,25 +14,35 @@
       padding: 20px;
       text-align: center;
       margin: 0;
-      background: linear-gradient(to bottom, #87cefa, #4682b4); /* Light to dark skyblue */
+      background: linear-gradient(to bottom, #add8e6, #1e90ff); /* Smooth light to dark blue */
       color: #000;
     }
 
     h2 {
-      font-size: 2em;
-      margin-bottom: 10px;
+      font-size: 2.2em;
+      margin-bottom: 5px;
     }
 
-    /* Styling the "createnow" word */
+    .subtitle {
+      font-size: 0.95em;
+      color: lightgray;
+      margin-bottom: 20px;
+    }
+
+    /* Stylized createnow */
     .brand-highlight {
       font-weight: bold;
+      display: inline-block;
     }
+
     .brand-cre {
       color: black;
     }
+
     .brand-ate {
       color: red;
     }
+
     .brand-now {
       color: black;
     }
@@ -80,15 +90,13 @@
 </head>
 <body>
 
-  <h2>
-    <span class="brand-highlight">
-      <span class="brand-cre">cre</span>
-      <span class="brand-ate">ate</span>
-      <span class="brand-now">now</span>
-    </span>
-    <br> address findings
+  <!-- Header -->
+  <h2 class="brand-highlight">
+    <span class="brand-cre">cre</span><span class="brand-ate">ate</span><span class="brand-now">now</span>
   </h2>
+  <div class="subtitle">anything to everything</div>
 
+  <!-- Input for user name -->
   <input type="text" id="userName" placeholder="Enter your name" />
   <br />
   <button id="actionBtn">Get Location</button>
