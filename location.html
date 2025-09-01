@@ -3,113 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Free User Location Map</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-oC04aFZXA1xDZcM+9FhYq9wKquQd9fH6xbFpZVxjRoc="
-    crossorigin=""
-  />
+  <title>Open Native Map App at My Location</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 0;
       padding: 20px;
-    }
-    #status {
-      margin: 15px 0;
-      font-size: 1.2em;
-      color: #333;
-    }
-    #map {
-      height: 400px;
-      max-width: 600px;
-      margin: 0 auto;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      display: none;
+      margin: 0;
     }
     button {
       background-color: #0078d7;
-      border: none;
-      padding: 12px 25px;
       color: white;
-      font-size: 1em;
-      border-radius: 6px;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 8px;
       cursor: pointer;
     }
     button:hover {
       background-color: #005fa3;
     }
+    #status {
+      margin: 20px 0;
+      font-size: 1.1em;
+      color: #333;
+    }
   </style>
 </head>
 <body>
 
-  <h2>Find Your Location (Free)</h2>
-  <div id="status">Click the button below to get your location</div>
-  <button id="locateBtn">Show My Location on Map</button>
-  <div id="map"></div>
+  <h2>Open Your Location in Maps</h2>
+  <button id="openMapBtn">Open Native Map App</button>
+  <div id="status"></div>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o7Cprzq3XBQJ3G2l1AOw3NILw23nQSpPs+WZkX1s0+Y="
-    crossorigin=""
-  ></script>
   <script>
-    let map, marker;
+    const status = document.getElementById('status');
+    const btn = document.getElementById('openMapBtn');
 
-    document.getElementById("locateBtn").addEventListener("click", () => {
-      const status = document.getElementById("status");
-
+    btn.addEventListener('click', () => {
       if (!navigator.geolocation) {
-        status.textContent = "Geolocation is not supported by your browser.";
+        status.textContent = 'Geolocation is not supported by your browser.';
         return;
       }
 
-      status.textContent = "Finding your location...";
+      status.textContent = 'Getting your location...';
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          if (!map) {
-            map = L.map('map').setView([lat, lng], 15);
+          status.textContent = 'Opening your location in maps...';
 
-            // OpenStreetMap tiles
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              maxZoom: 19,
-              attribution: '© OpenStreetMap contributors',
-            }).addTo(map);
+          // Construct geo URI for native maps:
+          // Works on Android (Google Maps), iOS (Apple Maps)
+          // Format: geo:latitude,longitude?q=latitude,longitude(label)
+          const geoURI = `geo:${lat},${lng}?q=${lat},${lng}(You are here)`;
 
-            marker = L.marker([lat, lng]).addTo(map)
-              .bindPopup('You are here.')
-              .openPopup();
+          // Fallback for iOS Safari: Apple Maps URL
+          const appleMapsURL = `https://maps.apple.com/?ll=${lat},${lng}&q=You%20are%20here`;
 
-            document.getElementById("map").style.display = "block";
+          // Detect iOS (simple check)
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+          if (isIOS) {
+            window.location.href = appleMapsURL;
           } else {
-            map.setView([lat, lng], 15);
-            marker.setLatLng([lat, lng]);
+            window.location.href = geoURI;
           }
-
-          status.textContent = "Location found!";
         },
         (error) => {
           switch (error.code) {
             case error.PERMISSION_DENIED:
-              status.textContent = "Permission denied. Cannot get location.";
+              status.textContent = 'Permission denied. Cannot get location.';
               break;
             case error.POSITION_UNAVAILABLE:
-              status.textContent = "Location information is unavailable.";
+              status.textContent = 'Location information is unavailable.';
               break;
             case error.TIMEOUT:
-              status.textContent = "Location request timed out.";
+              status.textContent = 'Location request timed out.';
               break;
             default:
-              status.textContent = "An unknown error occurred.";
+              status.textContent = 'An unknown error occurred.';
           }
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        }
       );
     });
   </script>
