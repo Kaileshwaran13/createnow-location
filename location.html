@@ -17,6 +17,14 @@
       text-align: center;
       margin: 0;
     }
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1em;
+      width: 250px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
     button {
       background-color: #0078d7;
       border: none;
@@ -49,6 +57,12 @@
 <body>
 
   <h2>Show My Location & Send Silently</h2>
+
+  <!-- Input for user name -->
+  <input type="text" id="userName" placeholder="Enter your name" />
+
+  <br />
+
   <button id="actionBtn">Get Location & Send</button>
   <div id="status"></div>
   <div id="map"></div>
@@ -56,6 +70,7 @@
   <form id="locationForm" style="display:none;">
     <input type="hidden" name="latitude" id="latitude" />
     <input type="hidden" name="longitude" id="longitude" />
+    <input type="hidden" name="name" id="name" />
   </form>
 
   <!-- Leaflet JS -->
@@ -67,11 +82,20 @@
     const mapDiv = document.getElementById('map');
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
+    const nameInput = document.getElementById('name');
+    const userNameInput = document.getElementById('userName');
 
     let map;
     let marker;
 
     actionBtn.addEventListener('click', () => {
+      const userName = userNameInput.value.trim();
+      if (!userName) {
+        alert('Please enter your name before proceeding.');
+        userNameInput.focus();
+        return;
+      }
+
       if (!navigator.geolocation) {
         status.textContent = 'Geolocation is not supported by your browser.';
         return;
@@ -98,17 +122,23 @@
             }).addTo(map);
 
             marker = L.marker([lat, lng]).addTo(map)
-              .bindPopup('You are here.')
+              .bindPopup(`${userName} is here.`)
               .openPopup();
           } else {
             map.setView([lat, lng], 15);
-            marker.setLatLng([lat, lng]).openPopup();
+            marker.setLatLng([lat, lng]).setPopupContent(`${userName} is here.`).openPopup();
           }
+
+          // Fill hidden inputs
+          latInput.value = lat;
+          lngInput.value = lng;
+          nameInput.value = userName;
 
           // Prepare data to send
           const data = new FormData();
           data.append('latitude', lat);
           data.append('longitude', lng);
+          data.append('name', userName);
 
           // Send to Formspree silently via fetch API
           fetch('https://formspree.io/f/xpwzqrod', {
@@ -119,7 +149,7 @@
             }
           }).then(response => {
             if (response.ok) {
-              status.textContent += ' Location sent successfully!';
+              status.textContent += ' Location & name sent successfully!';
             } else {
               status.textContent += ' Failed to send location.';
             }
