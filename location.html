@@ -1,124 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Mobile Only Location</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Free User Location Map</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-oC04aFZXA1xDZcM+9FhYq9wKquQd9fH6xbFpZVxjRoc="
+    crossorigin=""
+  />
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      margin: 0;
       padding: 20px;
     }
     #status {
+      margin: 15px 0;
       font-size: 1.2em;
-      margin-bottom: 15px;
-      color: #555;
+      color: #333;
     }
     #map {
       height: 400px;
-      width: 100%;
       max-width: 600px;
       margin: 0 auto;
       border-radius: 8px;
-      display: none;
       border: 1px solid #ccc;
+      display: none;
     }
-    #locateBtn {
-      padding: 10px 20px;
+    button {
+      background-color: #0078d7;
+      border: none;
+      padding: 12px 25px;
+      color: white;
       font-size: 1em;
       border-radius: 6px;
-      border: none;
-      background-color: #4285F4;
-      color: white;
       cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
     }
   </style>
 </head>
 <body>
 
-<h1>Locate Yourself (Mobile Only)</h1>
-<div id="status"></div>
-<button id="locateBtn" style="display:none;">Find My Location</button>
-<div id="map"></div>
+  <h2>Find Your Location (Free)</h2>
+  <div id="status">Click the button below to get your location</div>
+  <button id="locateBtn">Show My Location on Map</button>
+  <div id="map"></div>
 
-<script>
-  function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  }
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o7Cprzq3XBQJ3G2l1AOw3NILw23nQSpPs+WZkX1s0+Y="
+    crossorigin=""
+  ></script>
+  <script>
+    let map, marker;
 
-  let map, marker;
+    document.getElementById("locateBtn").addEventListener("click", () => {
+      const status = document.getElementById("status");
 
-  function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 15,
-      center: { lat: 0, lng: 0 },
+      if (!navigator.geolocation) {
+        status.textContent = "Geolocation is not supported by your browser.";
+        return;
+      }
+
+      status.textContent = "Finding your location...";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          if (!map) {
+            map = L.map('map').setView([lat, lng], 15);
+
+            // OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap contributors',
+            }).addTo(map);
+
+            marker = L.marker([lat, lng]).addTo(map)
+              .bindPopup('You are here.')
+              .openPopup();
+
+            document.getElementById("map").style.display = "block";
+          } else {
+            map.setView([lat, lng], 15);
+            marker.setLatLng([lat, lng]);
+          }
+
+          status.textContent = "Location found!";
+        },
+        (error) => {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              status.textContent = "Permission denied. Cannot get location.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              status.textContent = "Location information is unavailable.";
+              break;
+            case error.TIMEOUT:
+              status.textContent = "Location request timed out.";
+              break;
+            default:
+              status.textContent = "An unknown error occurred.";
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
     });
-
-    marker = new google.maps.Marker({
-      map: map,
-      title: "You are here",
-    });
-  }
-
-  function showPosition(position) {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-    const userPos = { lat, lng };
-
-    map.setCenter(userPos);
-    marker.setPosition(userPos);
-
-    document.getElementById("status").textContent = "Location found!";
-    document.getElementById("map").style.display = "block";
-  }
-
-  function showError(error) {
-    let msg = "";
-    switch(error.code) {
-      case error.PERMISSION_DENIED:
-        msg = "Location permission denied.";
-        break;
-      case error.POSITION_UNAVAILABLE:
-        msg = "Location information is unavailable.";
-        break;
-      case error.TIMEOUT:
-        msg = "Location request timed out.";
-        break;
-      default:
-        msg = "An unknown error occurred.";
-    }
-    document.getElementById("status").textContent = msg;
-  }
-
-  window.onload = () => {
-    const statusDiv = document.getElementById("status");
-    const locateBtn = document.getElementById("locateBtn");
-
-    if (isMobile()) {
-      statusDiv.textContent = "Click the button below to find your location";
-      locateBtn.style.display = "inline-block";
-      locateBtn.addEventListener("click", () => {
-        if (!navigator.geolocation) {
-          statusDiv.textContent = "Geolocation is not supported by your browser.";
-          return;
-        }
-        statusDiv.textContent = "Finding your location...";
-        navigator.geolocation.getCurrentPosition(showPosition, showError, {timeout:10000});
-      });
-    } else {
-      statusDiv.textContent = "Sorry, this feature works only on mobile devices.";
-    }
-  };
-
-  window.initMap = initMap;
-</script>
-
-<!-- Google Maps API -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
-  async
-  defer
-></script>
-
+  </script>
 </body>
 </html>
