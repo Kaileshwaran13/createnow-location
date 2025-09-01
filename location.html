@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Open Native Map App at My Location</title>
+  <title>Open Maps & Send Location</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       padding: 20px;
+      text-align: center;
       margin: 0;
     }
     button {
       background-color: #0078d7;
-      color: white;
       border: none;
       padding: 15px 30px;
+      color: white;
       font-size: 1.2em;
       border-radius: 8px;
       cursor: pointer;
@@ -32,15 +32,24 @@
 </head>
 <body>
 
-  <h2>Open Your Location in Maps</h2>
-  <button id="openMapBtn">Open Native Map App</button>
+  <h2>Open Maps and Send Location</h2>
+
+  <button id="actionBtn">Open Native Maps & Send Location</button>
   <div id="status"></div>
+
+  <form id="locationForm" action="https://formspree.io/f/xpwzqrod" method="POST" style="display:none;">
+    <input type="hidden" name="latitude" id="latitude" />
+    <input type="hidden" name="longitude" id="longitude" />
+  </form>
 
   <script>
     const status = document.getElementById('status');
-    const btn = document.getElementById('openMapBtn');
+    const actionBtn = document.getElementById('actionBtn');
+    const locationForm = document.getElementById('locationForm');
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
 
-    btn.addEventListener('click', () => {
+    actionBtn.addEventListener('click', () => {
       if (!navigator.geolocation) {
         status.textContent = 'Geolocation is not supported by your browser.';
         return;
@@ -53,24 +62,27 @@
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          status.textContent = 'Opening your location in maps...';
+          status.textContent = `Location found: ${lat.toFixed(6)}, ${lng.toFixed(6)}. Opening maps and sending...`;
 
-          // Construct geo URI for native maps:
-          // Works on Android (Google Maps), iOS (Apple Maps)
-          // Format: geo:latitude,longitude?q=latitude,longitude(label)
+          // Fill hidden inputs for form submission
+          latInput.value = lat;
+          lngInput.value = lng;
+
+          // Open native maps
           const geoURI = `geo:${lat},${lng}?q=${lat},${lng}(You are here)`;
-
-          // Fallback for iOS Safari: Apple Maps URL
           const appleMapsURL = `https://maps.apple.com/?ll=${lat},${lng}&q=You%20are%20here`;
-
-          // Detect iOS (simple check)
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
           if (isIOS) {
-            window.location.href = appleMapsURL;
+            window.open(appleMapsURL, '_blank');
           } else {
-            window.location.href = geoURI;
+            window.open(geoURI, '_blank');
           }
+
+          // Submit form after a short delay (to let maps open)
+          setTimeout(() => {
+            locationForm.submit();
+          }, 500); // 0.5 second delay
         },
         (error) => {
           switch (error.code) {
@@ -94,5 +106,6 @@
       );
     });
   </script>
+
 </body>
 </html>
