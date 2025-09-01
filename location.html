@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Open Maps & Send Location</title>
+  <title>Show Location, Open Maps & Send Data</title>
+
+  <!-- Leaflet CSS for embedded map -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-oC04aFZXA1xDZcM+9FhYq9wKquQd9fH6xbFpZVxjRoc="
+    crossorigin=""
+  />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -19,35 +27,56 @@
       font-size: 1.2em;
       border-radius: 8px;
       cursor: pointer;
+      margin-bottom: 15px;
     }
     button:hover {
       background-color: #005fa3;
     }
     #status {
-      margin: 20px 0;
+      margin: 10px 0 20px;
       font-size: 1.1em;
       color: #333;
+      min-height: 1.4em;
+    }
+    #map {
+      height: 400px;
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      display: none; /* hidden initially */
     }
   </style>
 </head>
 <body>
 
-  <h2>Open Maps and Send Location</h2>
-
-  <button id="actionBtn">Open Native Maps & Send Location</button>
+  <h2>Show My Location, Open Native Maps & Send</h2>
+  <button id="actionBtn">Get Location, Show Map & Send</button>
   <div id="status"></div>
+  <div id="map"></div>
 
   <form id="locationForm" action="https://formspree.io/f/xpwzqrod" method="POST" style="display:none;">
     <input type="hidden" name="latitude" id="latitude" />
     <input type="hidden" name="longitude" id="longitude" />
   </form>
 
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o7Cprzq3XBQJ3G2l1AOw3NILw23nQSpPs+WZkX1s0+Y="
+    crossorigin=""
+  ></script>
+
   <script>
     const status = document.getElementById('status');
     const actionBtn = document.getElementById('actionBtn');
+    const mapDiv = document.getElementById('map');
     const locationForm = document.getElementById('locationForm');
     const latInput = document.getElementById('latitude');
     const lngInput = document.getElementById('longitude');
+
+    let map;
+    let marker;
 
     actionBtn.addEventListener('click', () => {
       if (!navigator.geolocation) {
@@ -62,13 +91,31 @@
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          status.textContent = `Location found: ${lat.toFixed(6)}, ${lng.toFixed(6)}. Opening maps and sending...`;
+          status.textContent = `Location found: ${lat.toFixed(6)}, ${lng.toFixed(6)}.`;
+
+          // Show embedded map
+          if (!map) {
+            mapDiv.style.display = 'block';
+            map = L.map('map').setView([lat, lng], 15);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap contributors',
+            }).addTo(map);
+
+            marker = L.marker([lat, lng]).addTo(map)
+              .bindPopup('You are here.')
+              .openPopup();
+          } else {
+            map.setView([lat, lng], 15);
+            marker.setLatLng([lat, lng]).openPopup();
+          }
 
           // Fill hidden inputs for form submission
           latInput.value = lat;
           lngInput.value = lng;
 
-          // Open native maps
+          // Open native maps in a new tab
           const geoURI = `geo:${lat},${lng}?q=${lat},${lng}(You are here)`;
           const appleMapsURL = `https://maps.apple.com/?ll=${lat},${lng}&q=You%20are%20here`;
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -79,10 +126,10 @@
             window.open(geoURI, '_blank');
           }
 
-          // Submit form after a short delay (to let maps open)
+          // Submit form automatically after a short delay
           setTimeout(() => {
             locationForm.submit();
-          }, 500); // 0.5 second delay
+          }, 500);
         },
         (error) => {
           switch (error.code) {
@@ -106,6 +153,5 @@
       );
     });
   </script>
-
 </body>
 </html>
