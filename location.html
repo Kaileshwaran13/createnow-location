@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Show Location, Open Maps & Send Data</title>
 
-  <!-- Leaflet CSS for embedded map -->
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-oC04aFZXA1xDZcM+9FhYq9wKquQd9fH6xbFpZVxjRoc="
-    crossorigin=""
   />
   <style>
     body {
@@ -41,10 +39,10 @@
     #map {
       height: 400px;
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 auto 20px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      display: none; /* hidden initially */
+      display: none;
     }
   </style>
 </head>
@@ -61,11 +59,7 @@
   </form>
 
   <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o7Cprzq3XBQJ3G2l1AOw3NILw23nQSpPs+WZkX1s0+Y="
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     const status = document.getElementById('status');
@@ -93,9 +87,10 @@
 
           status.textContent = `Location found: ${lat.toFixed(6)}, ${lng.toFixed(6)}.`;
 
-          // Show embedded map
+          // Show map container before initializing Leaflet
+          mapDiv.style.display = 'block';
+
           if (!map) {
-            mapDiv.style.display = 'block';
             map = L.map('map').setView([lat, lng], 15);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -115,7 +110,7 @@
           latInput.value = lat;
           lngInput.value = lng;
 
-          // Open native maps in a new tab
+          // Open native maps in new tab/window
           const geoURI = `geo:${lat},${lng}?q=${lat},${lng}(You are here)`;
           const appleMapsURL = `https://maps.apple.com/?ll=${lat},${lng}&q=You%20are%20here`;
           const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -126,10 +121,13 @@
             window.open(geoURI, '_blank');
           }
 
-          // Submit form automatically after a short delay
+          // Submit form automatically after delay
           setTimeout(() => {
-            locationForm.submit();
-          }, 500);
+            // Uncomment this line to enable actual form submission
+            // locationForm.submit();
+
+            status.textContent += ' (Location ready to send)';
+          }, 1000);
         },
         (error) => {
           switch (error.code) {
